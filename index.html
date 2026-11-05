@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Consulta FIPE</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="container">
+    <header>
+      <h1>🚗 Consulta Tabela FIPE</h1>
+      <p class="subtitulo">Preço médio de veículos usando a <a href="https://brasilapi.com.br/" target="_blank" rel="noopener">BrasilAPI</a></p>
+    </header>
+
+    <!-- 1) Consulta direta pelo código FIPE -->
+    <section class="card">
+      <h2>Consultar preço pelo código FIPE</h2>
+      <form id="formPreco">
+        <label for="codigoFipe">Código FIPE</label>
+        <div class="linha">
+          <input type="text" id="codigoFipe" placeholder="Ex.: 001004-9" required>
+          <button type="submit" id="btnConsultar">Consultar</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- 2) Explorar marcas e modelos (ajuda a encontrar o veículo) -->
+    <section class="card">
+      <h2>Explorar marcas e modelos</h2>
+      <div class="linha">
+        <select id="tipoVeiculo">
+          <option value="carros">Carros</option>
+          <option value="motos">Motos</option>
+          <option value="caminhoes">Caminhões</option>
+        </select>
+        <select id="marca" disabled>
+          <option value="">Carregando marcas...</option>
+        </select>
+      </div>
+      <ul id="listaModelos" class="lista-modelos"></ul>
+    </section>
+
+    <!-- Indicador de processamento da requisição -->
+    <div id="loading" class="loading oculto" role="status" aria-live="polite">
+      <div class="spinner"></div>
+      <span>Processando requisição...</span>
+    </div>
+
+    <div id="erro" class="erro oculto"></div>
+    <section id="resultado"></section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
