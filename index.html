@@ -4,60 +4,84 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Consulta FIPE</title>
-  <link rel="stylesheet" href="style.css?v=4">
+  <link rel="stylesheet" href="style.css?v=5">
 </head>
 <body>
   <main class="container">
     <header>
       <h1>🚗 Consulta Tabela FIPE</h1>
-      <p class="subtitulo">Escolha o veículo e veja o código FIPE e o preço médio, usando a <a href="https://brasilapi.com.br/" target="_blank" rel="noopener">BrasilAPI</a></p>
+      <p class="subtitulo">Escolha o veículo e descubra o código FIPE e o preço médio — dados da <a href="https://brasilapi.com.br/" target="_blank" rel="noopener">BrasilAPI</a></p>
     </header>
 
-    <!-- Escolha do veículo: Tipo -> Marca -> Modelo -> Ano -->
-    <section class="card">
-      <h2>Escolha o veículo</h2>
-      <div class="passos">
-        <label>
-          <span>1. Tipo</span>
-          <select id="tipoVeiculo">
-            <option value="carros">Carros</option>
-            <option value="motos">Motos</option>
-            <option value="caminhoes">Caminhões</option>
-          </select>
-        </label>
-        <label>
-          <span>2. Marca</span>
-          <select id="marca" disabled>
-            <option value="">Carregando marcas...</option>
-          </select>
-        </label>
-        <label>
-          <span>3. Modelo</span>
-          <select id="modelo" disabled>
-            <option value="">Escolha a marca primeiro</option>
-          </select>
-        </label>
-        <label>
-          <span>4. Ano</span>
-          <select id="ano" disabled>
-            <option value="">Escolha o modelo primeiro</option>
-          </select>
-        </label>
+    <!-- Barra de progresso: cada etapa vira "concluída" e pode ser clicada para voltar -->
+    <nav class="stepper" aria-label="Etapas da consulta">
+      <button class="step" data-step="tipo"><span>1</span>Tipo</button>
+      <button class="step" data-step="marca"><span>2</span>Marca</button>
+      <button class="step" data-step="modelo"><span>3</span>Modelo</button>
+      <button class="step" data-step="ano"><span>4</span>Ano</button>
+      <button class="step" data-step="resultado"><span>5</span>Resultado</button>
+    </nav>
+
+    <!-- Resumo do que já foi escolhido -->
+    <p id="trilha" class="trilha"></p>
+
+    <section class="painel">
+      <!-- Indicador de processamento da requisição -->
+      <div id="loading" class="loading oculto" role="status" aria-live="polite">
+        <div class="spinner"></div>
+        <span>Processando requisição...</span>
+      </div>
+
+      <div id="erro" class="erro oculto" role="alert"></div>
+
+      <!-- Etapa 1: tipo -->
+      <div class="etapa" id="etapa-tipo">
+        <h2>Que tipo de veículo?</h2>
+        <div class="tipos">
+          <button class="tipo" data-tipo="carros"><span class="emoji">🚗</span>Carros</button>
+          <button class="tipo" data-tipo="motos"><span class="emoji">🏍️</span>Motos</button>
+          <button class="tipo" data-tipo="caminhoes"><span class="emoji">🚚</span>Caminhões</button>
+        </div>
+      </div>
+
+      <!-- Etapa 2: marca -->
+      <div class="etapa oculto" id="etapa-marca">
+        <h2>Qual a marca?</h2>
+        <input type="search" id="buscaMarca" class="busca" placeholder="Digite para filtrar, ex.: Fiat">
+        <div id="listaMarcas" class="opcoes grade"></div>
+      </div>
+
+      <!-- Etapa 3: modelo -->
+      <div class="etapa oculto" id="etapa-modelo">
+        <h2>Qual o modelo?</h2>
+        <input type="search" id="buscaModelo" class="busca" placeholder="Digite para filtrar, ex.: Uno">
+        <p id="contaModelos" class="conta"></p>
+        <div id="listaModelos" class="opcoes lista"></div>
+      </div>
+
+      <!-- Etapa 4: ano -->
+      <div class="etapa oculto" id="etapa-ano">
+        <h2>Qual o ano?</h2>
+        <div id="listaAnos" class="opcoes chips"></div>
+      </div>
+
+      <!-- Etapa 5: resultado -->
+      <div class="etapa oculto" id="etapa-resultado">
+        <div id="ficha"></div>
+        <div class="acoes">
+          <button id="btnTrocarAno" class="secundario">Trocar ano</button>
+          <button id="btnNova" class="primario">Nova consulta</button>
+        </div>
       </div>
     </section>
 
-    <!-- Indicador de processamento da requisição -->
-    <div id="loading" class="loading oculto" role="status" aria-live="polite">
-      <div class="spinner"></div>
-      <span>Processando requisição...</span>
-    </div>
-
-    <div id="erro" class="erro oculto" role="alert"></div>
-
-    <!-- Resultado: código FIPE + dados do carro escolhido -->
-    <section id="resultado"></section>
+    <!-- Histórico das últimas consultas -->
+    <section id="recentes" class="recentes oculto">
+      <h2>Consultas recentes</h2>
+      <ul id="listaRecentes"></ul>
+    </section>
   </main>
 
-  <script src="script.js?v=4"></script>
+  <script src="script.js?v=5"></script>
 </body>
 </html>

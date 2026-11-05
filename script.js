@@ -1,168 +1,245 @@
 // URL base da BrasilAPI
 const API = 'https://brasilapi.com.br/api/fipe';
 
-// Elementos da página
-const selectTipo = document.getElementById('tipoVeiculo');
-const selectMarca = document.getElementById('marca');
-const selectModelo = document.getElementById('modelo');
-const selectAno = document.getElementById('ano');
-const loading = document.getElementById('loading');
-const erro = document.getElementById('erro');
-const resultado = document.getElementById('resultado');
+// O que o usuário já escolheu em cada etapa
+const escolha = { tipo: null, marca: null, modelo: null, ano: null };
+// Listas que vieram da API (guardadas para o filtro de busca)
+let marcas = [];
+let modelos = [];
 
-const TIPOS = { 1: 'Carro', 2: 'Moto', 3: 'Caminhão' };
+const ETAPAS = ['tipo', 'marca', 'modelo', 'ano', 'resultado'];
+const NOMES_TIPO = { carros: 'Carros', motos: 'Motos', caminhoes: 'Caminhões' };
+const TIPO_VEICULO = { 1: 'Carro', 2: 'Moto', 3: 'Caminhão' };
 
-// ---------- Ajudantes ----------
+const $ = (id) => document.getElementById(id);
+const loading = $('loading');
+const erro = $('erro');
 
-// Mostra/esconde o indicador "Processando requisição..."
-function setLoading(ativo) {
-  loading.classList.toggle('oculto', !ativo);
+// Evita que um texto vindo da API seja interpretado como HTML
+function esc(texto) {
+  const div = document.createElement('div');
+  div.textContent = texto ?? '';
+  return div.innerHTML;
 }
 
-function mostrarErro(mensagem) {
-  erro.textContent = mensagem;
-  erro.classList.remove('oculto');
-}
-
-function limparErro() {
-  erro.textContent = '';
-  erro.classList.add('oculto');
-}
-
-// Faz a requisição à API e devolve o JSON.
-// Se o servidor estiver instável (erro 5xx), tenta mais uma vez.
+// ---------- Requisição com indicador de processamento ----------
 async function buscar(url, tentativas = 2) {
-  setLoading(true);
-  limparErro();
+  loading.classList.remove('oculto'); // mostra "Processando requisição..."
+  erro.classList.add('oculto');
   try {
     for (let i = 1; i <= tentativas; i++) {
       const resposta = await fetch(url, { cache: 'no-store' });
       const dados = await resposta.json().catch(() => ({}));
       if (resposta.ok) return dados;
+      // Erro 5xx = instabilidade no servidor: tenta mais uma vez
       if (resposta.status < 500 || i === tentativas) {
         throw new Error(dados.message || `Erro ${resposta.status}`);
       }
       await new Promise((r) => setTimeout(r, 1000));
     }
   } finally {
-    setLoading(false); // some com o loading, dando certo ou errado
+    loading.classList.add('oculto'); // esconde, dando certo ou errado
   }
 }
 
-// Preenche um <select> com a lista que veio da API
-function preencher(select, itens, textoInicial, campoTexto) {
-  select.innerHTML = `<option value="">${textoInicial}</option>` +
-    itens.map((i) => `<option value="${i.valor}">${i[campoTexto]}</option>`).join('');
-  select.disabled = false;
+function mostrarErro(msg) {
+  erro.textContent = msg;
+  erro.classList.remove('oculto');
 }
 
-// Volta um <select> para o estado "aguardando o passo anterior"
-function resetar(select, texto) {
-  select.innerHTML = `<option value="">${texto}</option>`;
-  select.disabled = true;
+// ---------- Navegação entre etapas ----------
+function irPara(etapa) {
+  ETAPAS.forEach((nome) => $(`etapa-${nome}`).classList.toggle('oculto', nome !== etapa));
+
+  const atual = ETAPAS.indexOf(etapa);
+  document.querySelectorAll('.step').forEach((botao, i) => {
+    botao.classList.toggle('feito', i < atual);
+    botao.classList.toggle('atual', i === atual);
+    botao.disabled = i >= atual; // só dá para voltar para etapas já feitas
+  });
+
+  atualizarTrilha();
+  const busca = $(`busca${etapa[0].toUpperCase()}${etapa.slice(1)}`);
+  if (busca) busca.focus();
 }
 
-// ---------- Passo 1 e 2: tipo -> marcas ----------
-async function carregarMarcas() {
-  resetar(selectMarca, 'Carregando marcas...');
-  resetar(selectModelo, 'Escolha a marca primeiro');
-  resetar(selectAno, 'Escolha o modelo primeiro');
-  resultado.innerHTML = '';
+// Mostra "Carros › Fiat › Uno › 2010"
+function atualizarTrilha() {
+  const partes = [
+    escolha.tipo && NOMES_TIPO[escolha.tipo],
+    escolha.marca?.nome,
+    escolha.modelo?.modelo,
+    escolha.ano?.nome,
+  ].filter(Boolean);
+  $('trilha').innerHTML = partes.map((p) => `<b>${esc(p)}</b>`).join(' › ');
+}
+
+document.querySelectorAll('.step').forEach((botao) => {
+  botao.addEventListener('click', () => {
+    const etapa = botao.dataset.step;
+    // Ao voltar, apaga as escolhas das etapas seguintes
+    const i = ETAPAS.indexOf(etapa);
+    ['tipo', 'marca', 'modelo', 'ano'].slice(i).forEach((k) => { escolha[k] = null; });
+    irPara(etapa);
+  });
+});
+
+// Cria os botões de uma lista de opções
+function desenharOpcoes(container, itens, campoTexto, aoClicar) {
+  container.innerHTML = '';
+  if (!itens.length) {
+    container.innerHTML = '<p class="vazio">Nada encontrado com esse filtro.</p>';
+    return;
+  }
+  itens.forEach((item) => {
+    const botao = document.createElement('button');
+    botao.textContent = item[campoTexto];
+    botao.addEventListener('click', () => aoClicar(item));
+    container.appendChild(botao);
+  });
+}
+
+// Compara textos ignorando maiúsculas e acentos
+const normalizar = (t) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+
+// ---------- Etapa 1: tipo ----------
+document.querySelectorAll('.tipo').forEach((botao) => {
+  botao.addEventListener('click', () => escolherTipo(botao.dataset.tipo));
+});
+
+async function escolherTipo(tipo) {
+  escolha.tipo = tipo;
   try {
-    const marcas = await buscar(`${API}/marcas/v1/${selectTipo.value}`);
-    preencher(selectMarca, marcas, 'Selecione a marca', 'nome');
+    marcas = await buscar(`${API}/marcas/v1/${tipo}`);
+    $('buscaMarca').value = '';
+    filtrarMarcas();
+    irPara('marca');
   } catch (e) {
-    resetar(selectMarca, 'Erro ao carregar');
     mostrarErro(`Não foi possível carregar as marcas: ${e.message}`);
   }
 }
 
-// ---------- Passo 3: marca -> modelos ----------
-async function carregarModelos() {
-  resetar(selectModelo, 'Escolha a marca primeiro');
-  resetar(selectAno, 'Escolha o modelo primeiro');
-  resultado.innerHTML = '';
-  if (!selectMarca.value) return;
+// ---------- Etapa 2: marca ----------
+function filtrarMarcas() {
+  const termo = normalizar($('buscaMarca').value);
+  const filtradas = marcas.filter((m) => normalizar(m.nome).includes(termo));
+  desenharOpcoes($('listaMarcas'), filtradas, 'nome', escolherMarca);
+}
+$('buscaMarca').addEventListener('input', filtrarMarcas);
+
+async function escolherMarca(marca) {
+  escolha.marca = marca;
   try {
-    const modelos = await buscar(`${API}/veiculos/v1/${selectTipo.value}/${selectMarca.value}`);
-    preencher(selectModelo, modelos, 'Selecione o modelo', 'modelo');
+    modelos = await buscar(`${API}/veiculos/v1/${escolha.tipo}/${marca.valor}`);
+    $('buscaModelo').value = '';
+    filtrarModelos();
+    irPara('modelo');
   } catch (e) {
     mostrarErro(`Não foi possível carregar os modelos: ${e.message}`);
   }
 }
 
-// ---------- Passo 4: modelo -> anos ----------
-async function carregarAnos() {
-  resetar(selectAno, 'Escolha o modelo primeiro');
-  resultado.innerHTML = '';
-  if (!selectModelo.value) return;
+// ---------- Etapa 3: modelo ----------
+function filtrarModelos() {
+  const termo = normalizar($('buscaModelo').value);
+  const filtrados = modelos.filter((m) => normalizar(m.modelo).includes(termo));
+  $('contaModelos').textContent = `${filtrados.length} de ${modelos.length} modelos`;
+  desenharOpcoes($('listaModelos'), filtrados, 'modelo', escolherModelo);
+}
+$('buscaModelo').addEventListener('input', filtrarModelos);
+
+async function escolherModelo(modelo) {
+  escolha.modelo = modelo;
   try {
     const anos = await buscar(
-      `${API}/anos/v1/${selectTipo.value}/${selectMarca.value}/${selectModelo.value}`
+      `${API}/anos/v1/${escolha.tipo}/${escolha.marca.valor}/${modelo.valor}`
     );
-    preencher(selectAno, anos, 'Selecione o ano', 'nome');
+    // Troca "32000" (código da FIPE para zero km) por um texto legível
+    anos.forEach((a) => { a.nome = a.nome.replace('32000', 'Zero km'); });
+    desenharOpcoes($('listaAnos'), anos, 'nome', escolherAno);
+    irPara('ano');
   } catch (e) {
     mostrarErro(`Não foi possível carregar os anos: ${e.message}`);
   }
 }
 
-// ---------- Final: ano -> código FIPE + dados do carro ----------
-async function consultarVeiculo() {
-  resultado.innerHTML = '';
-  if (!selectAno.value) return;
+// ---------- Etapa 4: ano -> código FIPE e dados ----------
+async function escolherAno(ano) {
+  escolha.ano = ano;
   try {
     const carro = await buscar(
-      `${API}/detalhes/v1/${selectTipo.value}/${selectMarca.value}/${selectModelo.value}/${selectAno.value}`
+      `${API}/detalhes/v1/${escolha.tipo}/${escolha.marca.valor}/${escolha.modelo.valor}/${ano.valor}`
     );
     mostrarFicha(carro);
+    salvarRecente(carro);
+    irPara('resultado');
   } catch (e) {
     mostrarErro(`Não foi possível consultar o veículo: ${e.message}`);
   }
 }
 
-// Monta a "ficha" do carro escolhido na tela
+// ---------- Etapa 5: ficha do veículo ----------
 function mostrarFicha(carro) {
   const ano = carro.anoModelo === 32000 ? 'Zero km' : carro.anoModelo;
-  resultado.innerHTML = `
+  $('ficha').innerHTML = `
     <article class="ficha">
       <div class="ficha-topo">
         <div>
           <small>Código FIPE</small>
-          <div class="codigo">${carro.codigoFipe}</div>
+          <div class="codigo">${esc(carro.codigoFipe)}</div>
           <button type="button" class="copiar" id="btnCopiar">Copiar código</button>
         </div>
         <div>
-          <small>Preço médio</small>
-          <div class="preco">${carro.valor}</div>
+          <small>Preço médio FIPE</small>
+          <div class="preco">${esc(carro.valor)}</div>
         </div>
       </div>
-      <h3>${carro.marca} — ${carro.modelo}</h3>
+      <h3>${esc(carro.marca)} — ${esc(carro.modelo)}</h3>
       <dl>
-        <div><dt>Marca</dt><dd>${carro.marca}</dd></div>
-        <div><dt>Modelo</dt><dd>${carro.modelo}</dd></div>
-        <div><dt>Ano modelo</dt><dd>${ano}</dd></div>
-        <div><dt>Combustível</dt><dd>${carro.combustivel}</dd></div>
-        <div><dt>Tipo</dt><dd>${TIPOS[carro.tipoVeiculo] || '-'}</dd></div>
-        <div><dt>Mês de referência</dt><dd>${carro.mesReferencia}</dd></div>
+        <div><dt>Marca</dt><dd>${esc(carro.marca)}</dd></div>
+        <div><dt>Modelo</dt><dd>${esc(carro.modelo)}</dd></div>
+        <div><dt>Ano modelo</dt><dd>${esc(String(ano))}</dd></div>
+        <div><dt>Combustível</dt><dd>${esc(carro.combustivel)}</dd></div>
+        <div><dt>Tipo</dt><dd>${TIPO_VEICULO[carro.tipoVeiculo] || '-'}</dd></div>
+        <div><dt>Mês de referência</dt><dd>${esc(carro.mesReferencia)}</dd></div>
       </dl>
     </article>
   `;
-
-  document.getElementById('btnCopiar').addEventListener('click', async (ev) => {
+  $('btnCopiar').addEventListener('click', async (ev) => {
     try {
       await navigator.clipboard.writeText(carro.codigoFipe);
-      ev.target.textContent = 'Copiado!';
+      ev.target.textContent = 'Copiado! ✓';
     } catch {
       ev.target.textContent = 'Não foi possível copiar';
     }
   });
 }
 
-// ---------- Eventos: cada escolha libera a próxima ----------
-selectTipo.addEventListener('change', carregarMarcas);
-selectMarca.addEventListener('change', carregarModelos);
-selectModelo.addEventListener('change', carregarAnos);
-selectAno.addEventListener('change', consultarVeiculo);
+$('btnTrocarAno').addEventListener('click', () => { escolha.ano = null; irPara('ano'); });
+$('btnNova').addEventListener('click', () => {
+  Object.keys(escolha).forEach((k) => { escolha[k] = null; });
+  irPara('tipo');
+});
 
-// Ao abrir a página, já carrega as marcas de carros
-carregarMarcas();
+// ---------- Consultas recentes (ficam salvas no navegador) ----------
+function lerRecentes() {
+  try { return JSON.parse(localStorage.getItem('fipeRecentes')) || []; } catch { return []; }
+}
+
+function salvarRecente(carro) {
+  const item = { codigo: carro.codigoFipe, nome: `${carro.marca} ${carro.modelo} ${carro.anoModelo === 32000 ? 'Zero km' : carro.anoModelo}`, valor: carro.valor };
+  const lista = [item, ...lerRecentes().filter((r) => r.nome !== item.nome)].slice(0, 5);
+  try { localStorage.setItem('fipeRecentes', JSON.stringify(lista)); } catch { /* navegador sem armazenamento */ }
+  desenharRecentes(lista);
+}
+
+function desenharRecentes(lista = lerRecentes()) {
+  $('recentes').classList.toggle('oculto', !lista.length);
+  $('listaRecentes').innerHTML = lista.map((r) => `
+    <li><span>${esc(r.nome)} · <span class="cod">${esc(r.codigo)}</span></span><b>${esc(r.valor)}</b></li>
+  `).join('');
+}
+
+// ---------- Início ----------
+desenharRecentes();
+irPara('tipo');

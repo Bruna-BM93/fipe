@@ -3,14 +3,18 @@
 Aplicação web (HTML + CSS + JavaScript puro) que mostra o **código FIPE** e os **dados do veículo** escolhido, usando a [BrasilAPI](https://brasilapi.com.br/).
 
 ## Como usar
-Escolha em sequência: **Tipo → Marca → Modelo → Ano**.
+1. **Tipo:** clique em Carros, Motos ou Caminhões.
+2. **Marca:** clique na marca (dá para digitar para filtrar).
+3. **Modelo:** clique no modelo (também com busca).
+4. **Ano:** clique no ano.
 
-Ao escolher o ano, aparece a ficha do veículo com:
-- **Código FIPE** (com botão para copiar)
-- **Preço médio**
-- Marca, modelo, ano, combustível, tipo e mês de referência
+Aparece a ficha do veículo com o **código FIPE** (com botão para copiar), o **preço médio** e marca, modelo, ano, combustível, tipo e mês de referência.
 
-Enquanto cada consulta acontece, aparece uma rodinha girando com "Processando requisição...".
+Outros recursos:
+- Barra de progresso: clique numa etapa anterior para voltar.
+- Botões **Trocar ano** e **Nova consulta**.
+- **Consultas recentes**: as últimas 5 consultas ficam salvas no navegador.
+- Enquanto cada consulta acontece, aparece uma rodinha com "Processando requisição...".
 
 ## Em linguagem simples
 O site funciona como um atendente: você escolhe o carro, ele avisa que está consultando, busca a resposta na base oficial da FIPE (através da BrasilAPI) e mostra o código e o valor em segundos.
