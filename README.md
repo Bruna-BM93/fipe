@@ -1,33 +1,35 @@
 # 🚗 Consulta Tabela FIPE
 
-Aplicação web (HTML + CSS + JavaScript puro) que consulta o preço de veículos na Tabela FIPE usando a [BrasilAPI](https://brasilapi.com.br/).
-
-## Funcionalidades
-- Consulta de preço pelo **código FIPE** (`GET /api/fipe/preco/v1/{codigoFipe}`)
-- Consulta guiada para quem não sabe o código: **Marca → Modelo → Ano → Preço**
-  - `GET /api/fipe/marcas/v1/{tipoVeiculo}`
-  - `GET /api/fipe/veiculos/v1/{tipoVeiculo}/{codigoMarca}`
-  - `GET /api/fipe/anos/v1/{tipoVeiculo}/{codigoMarca}/{codigoModelo}`
-  - `GET /api/fipe/detalhes/v1/{tipoVeiculo}/{codigoMarca}/{codigoModelo}/{codigoAno}`
-- Indicador visual **"Processando requisição..."** (spinner) enquanto a API responde
-- Tratamento de erros (código inexistente, falha de rede)
+Aplicação web (HTML + CSS + JavaScript puro) que mostra o **código FIPE** e os **dados do veículo** escolhido, usando a [BrasilAPI](https://brasilapi.com.br/).
 
 ## Como usar
-**Se você sabe o código FIPE:** digite no primeiro campo (ex.: `001004-9`) e clique em **Consultar**.
+Escolha em sequência: **Tipo → Marca → Modelo → Ano**.
 
-**Se não sabe:** escolha em sequência o **tipo → marca → modelo → ano**. O preço aparece sozinho no final, junto com o código FIPE do veículo.
+Ao escolher o ano, aparece a ficha do veículo com:
+- **Código FIPE** (com botão para copiar)
+- **Preço médio**
+- Marca, modelo, ano, combustível, tipo e mês de referência
 
-Enquanto a consulta acontece, aparece uma rodinha girando com "Processando requisição...".
+Enquanto cada consulta acontece, aparece uma rodinha girando com "Processando requisição...".
 
 ## Em linguagem simples
-O site funciona como um atendente: você pergunta o preço de um carro, ele avisa que está consultando, busca a resposta na base oficial da FIPE (através da BrasilAPI) e mostra o valor em segundos.
+O site funciona como um atendente: você escolhe o carro, ele avisa que está consultando, busca a resposta na base oficial da FIPE (através da BrasilAPI) e mostra o código e o valor em segundos.
 
-## Como executar
-Basta abrir o `index.html` no navegador, ou usar a extensão Live Server do VS Code. Não precisa instalar nada.
+## Rotas da BrasilAPI usadas
+| Passo | Rota |
+|---|---|
+| Marcas | `GET /api/fipe/marcas/v1/{tipo}` |
+| Modelos | `GET /api/fipe/veiculos/v1/{tipo}/{marca}` |
+| Anos | `GET /api/fipe/anos/v1/{tipo}/{marca}/{modelo}` |
+| Código FIPE e dados | `GET /api/fipe/detalhes/v1/{tipo}/{marca}/{modelo}/{ano}` |
 
 ## Como funciona
-1. O `fetch` faz a requisição à BrasilAPI dentro de uma função `async`.
+1. Cada escolha dispara um `fetch` à BrasilAPI dentro de uma função `async`.
 2. Antes da requisição, o elemento `#loading` fica visível; no `finally`, ele é escondido de novo.
-3. O JSON retornado é transformado em HTML e inserido na página.
+3. Se a API estiver instável (erro 5xx), o site tenta mais uma vez automaticamente.
+4. O JSON retornado preenche a próxima lista ou monta a ficha do veículo.
+
+## Como executar
+Abra o `index.html` no navegador, ou use a extensão Live Server do VS Code. Não precisa instalar nada.
 
 Projeto de referência: [fabianooss/aula-javascript-request-api](https://github.com/fabianooss/aula-javascript-request-api)

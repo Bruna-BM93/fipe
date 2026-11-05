@@ -4,45 +4,45 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Consulta FIPE</title>
-  <link rel="stylesheet" href="style.css?v=3">
+  <link rel="stylesheet" href="style.css?v=4">
 </head>
 <body>
   <main class="container">
     <header>
       <h1>🚗 Consulta Tabela FIPE</h1>
-      <p class="subtitulo">Preço médio de veículos usando a <a href="https://brasilapi.com.br/" target="_blank" rel="noopener">BrasilAPI</a></p>
+      <p class="subtitulo">Escolha o veículo e veja o código FIPE e o preço médio, usando a <a href="https://brasilapi.com.br/" target="_blank" rel="noopener">BrasilAPI</a></p>
     </header>
 
-    <!-- 1) Consulta direta pelo código FIPE -->
+    <!-- Escolha do veículo: Tipo -> Marca -> Modelo -> Ano -->
     <section class="card">
-      <h2>Consultar preço pelo código FIPE</h2>
-      <form id="formPreco">
-        <label for="codigoFipe">Código FIPE</label>
-        <div class="linha">
-          <input type="text" id="codigoFipe" placeholder="Ex.: 001004-9" pattern="\d{6}-\d" title="Formato 000000-0, ex.: 001004-9" required>
-          <button type="submit" id="btnConsultar">Consultar</button>
-        </div>
-      </form>
-    </section>
-
-    <!-- 2) Consulta guiada: Marca -> Modelo -> Ano -> Preço -->
-    <section class="card">
-      <h2>Não sabe o código? Escolha o veículo</h2>
-      <div class="grade">
-        <select id="tipoVeiculo" aria-label="Tipo de veículo">
-          <option value="carros">Carros</option>
-          <option value="motos">Motos</option>
-          <option value="caminhoes">Caminhões</option>
-        </select>
-        <select id="marca" aria-label="Marca" disabled>
-          <option value="">Carregando marcas...</option>
-        </select>
-        <select id="modelo" aria-label="Modelo" disabled>
-          <option value="">Escolha a marca primeiro</option>
-        </select>
-        <select id="ano" aria-label="Ano" disabled>
-          <option value="">Escolha o modelo primeiro</option>
-        </select>
+      <h2>Escolha o veículo</h2>
+      <div class="passos">
+        <label>
+          <span>1. Tipo</span>
+          <select id="tipoVeiculo">
+            <option value="carros">Carros</option>
+            <option value="motos">Motos</option>
+            <option value="caminhoes">Caminhões</option>
+          </select>
+        </label>
+        <label>
+          <span>2. Marca</span>
+          <select id="marca" disabled>
+            <option value="">Carregando marcas...</option>
+          </select>
+        </label>
+        <label>
+          <span>3. Modelo</span>
+          <select id="modelo" disabled>
+            <option value="">Escolha a marca primeiro</option>
+          </select>
+        </label>
+        <label>
+          <span>4. Ano</span>
+          <select id="ano" disabled>
+            <option value="">Escolha o modelo primeiro</option>
+          </select>
+        </label>
       </div>
     </section>
 
@@ -52,10 +52,12 @@
       <span>Processando requisição...</span>
     </div>
 
-    <div id="erro" class="erro oculto"></div>
+    <div id="erro" class="erro oculto" role="alert"></div>
+
+    <!-- Resultado: código FIPE + dados do carro escolhido -->
     <section id="resultado"></section>
   </main>
 
-  <script src="script.js?v=3"></script>
+  <script src="script.js?v=4"></script>
 </body>
 </html>

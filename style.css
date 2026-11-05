@@ -7,11 +7,11 @@ body {
   padding: 24px 16px;
 }
 
-.container { max-width: 720px; margin: 0 auto; display: grid; gap: 16px; }
+.container { max-width: 760px; margin: 0 auto; display: grid; gap: 16px; }
 
 header h1 { font-size: 1.8rem; }
 .subtitulo { color: #555; margin-top: 4px; }
-a { color: #b7791f; }
+a { color: #8a5a12; }
 
 .card {
   background: #fff;
@@ -19,28 +19,28 @@ a { color: #b7791f; }
   padding: 20px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, .08);
 }
-.card h2 { font-size: 1.1rem; margin-bottom: 12px; }
+.card h2 { font-size: 1.1rem; margin-bottom: 14px; }
 
-label { display: block; font-size: .9rem; margin-bottom: 6px; color: #444; }
+/* ---------- Passos da escolha ---------- */
+.passos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+}
+.passos label { display: grid; gap: 6px; font-size: .85rem; color: #555; font-weight: 600; }
 
-.linha { display: flex; gap: 8px; flex-wrap: wrap; }
-
-input, select, button {
+select {
   font: inherit;
+  font-weight: 400;
+  color: #1c1c1c;
+  width: 100%;
+  min-width: 0;
   padding: 10px 12px;
   border-radius: 8px;
   border: 1px solid #ccc;
+  background: #fff;
 }
-input, select { flex: 1; min-width: 160px; background: #fff; }
-
-button {
-  background: #1c1c1c;
-  color: #fff;
-  border: none;
-  cursor: pointer;
-}
-button:hover { background: #b7791f; }
-button:disabled { opacity: .6; cursor: wait; }
+select:disabled { background: #f2f0eb; color: #888; }
 
 /* ---------- Loading ---------- */
 .loading {
@@ -71,20 +71,44 @@ button:disabled { opacity: .6; cursor: wait; }
 }
 
 /* ---------- Resultado ---------- */
-.resultado-item {
+.ficha {
   background: #fff;
-  border-left: 6px solid #b7791f;
   border-radius: 12px;
-  padding: 16px 20px;
-  margin-bottom: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .08);
 }
-.resultado-item .valor { font-size: 1.8rem; font-weight: 700; margin: 6px 0; }
-.resultado-item dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; font-size: .95rem; }
-.resultado-item dt { color: #666; }
+.ficha-topo {
+  background: #1c1c1c;
+  color: #f4f1ea;
+  padding: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 16px;
+}
+.ficha-topo small { display: block; color: #d8d2c4; font-size: .8rem; text-transform: uppercase; letter-spacing: 1px; }
+.codigo { font-family: ui-monospace, Consolas, monospace; font-size: 1.8rem; font-weight: 700; color: #e0a43a; }
+.preco { font-size: 1.8rem; font-weight: 700; }
 
-.grade {
+.ficha h3 { padding: 18px 20px 0; font-size: 1.15rem; }
+.ficha dl {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  padding: 16px 20px 20px;
 }
-.grade select { min-width: 0; }
+.ficha dt { color: #666; font-size: .8rem; }
+.ficha dd { font-weight: 600; }
+
+.copiar {
+  font: inherit;
+  font-size: .85rem;
+  margin-top: 6px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid #e0a43a;
+  background: transparent;
+  color: #e0a43a;
+  cursor: pointer;
+}
+.copiar:hover { background: #e0a43a; color: #1c1c1c; }
