@@ -28,16 +28,20 @@ function limparErro() {
 }
 
 // Função genérica: faz a requisição e devolve o JSON
-async function buscar(url) {
+async function buscar(url, tentativas = 2) {
   setLoading(true);
   limparErro();
   try {
-    const resposta = await fetch(url);
-    const dados = await resposta.json();
-    if (!resposta.ok) {
-      throw new Error(dados.message || `Erro ${resposta.status}`);
+    for (let i = 1; i <= tentativas; i++) {
+      const resposta = await fetch(url, { cache: 'no-store' });
+      const dados = await resposta.json().catch(() => ({}));
+      if (resposta.ok) return dados;
+      // Erro 5xx = instabilidade no servidor: tenta mais uma vez
+      if (resposta.status < 500 || i === tentativas) {
+        throw new Error(dados.message || `Erro ${resposta.status}`);
+      }
+      await new Promise((r) => setTimeout(r, 1000));
     }
-    return dados;
   } finally {
     setLoading(false);
   }
@@ -58,7 +62,10 @@ formPreco.addEventListener('submit', async (evento) => {
     }
     mostrarPrecos(precos);
   } catch (e) {
-    mostrarErro(`Não foi possível consultar: ${e.message}`);
+    mostrarErro(
+      `Não foi possível consultar pelo código: ${e.message} ` +
+      'Dica: use a opção "Não sabe o código? Escolha o veículo" logo abaixo.'
+    );
   }
 });
 
