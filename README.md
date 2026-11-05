@@ -4,8 +4,11 @@ Aplicação web (HTML + CSS + JavaScript puro) que consulta o preço de veículo
 
 ## Funcionalidades
 - Consulta de preço pelo **código FIPE** (`GET /api/fipe/preco/v1/{codigoFipe}`)
-- Listagem de **marcas** por tipo de veículo (`GET /api/fipe/marcas/v1/{tipoVeiculo}`)
-- Listagem de **modelos** de uma marca (`GET /api/fipe/veiculos/v1/{tipoVeiculo}/{codigoMarca}`)
+- Consulta guiada para quem não sabe o código: **Marca → Modelo → Ano → Preço**
+  - `GET /api/fipe/marcas/v1/{tipoVeiculo}`
+  - `GET /api/fipe/veiculos/v1/{tipoVeiculo}/{codigoMarca}`
+  - `GET /api/fipe/anos/v1/{tipoVeiculo}/{codigoMarca}/{codigoModelo}`
+  - `GET /api/fipe/detalhes/v1/{tipoVeiculo}/{codigoMarca}/{codigoModelo}/{codigoAno}`
 - Indicador visual **"Processando requisição..."** (spinner) enquanto a API responde
 - Tratamento de erros (código inexistente, falha de rede)
 

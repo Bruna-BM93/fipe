@@ -25,20 +25,25 @@
       </form>
     </section>
 
-    <!-- 2) Explorar marcas e modelos (ajuda a encontrar o veículo) -->
+    <!-- 2) Consulta guiada: Marca -> Modelo -> Ano -> Preço -->
     <section class="card">
-      <h2>Explorar marcas e modelos</h2>
-      <div class="linha">
-        <select id="tipoVeiculo">
+      <h2>Não sabe o código? Escolha o veículo</h2>
+      <div class="grade">
+        <select id="tipoVeiculo" aria-label="Tipo de veículo">
           <option value="carros">Carros</option>
           <option value="motos">Motos</option>
           <option value="caminhoes">Caminhões</option>
         </select>
-        <select id="marca" disabled>
+        <select id="marca" aria-label="Marca" disabled>
           <option value="">Carregando marcas...</option>
         </select>
+        <select id="modelo" aria-label="Modelo" disabled>
+          <option value="">Escolha a marca primeiro</option>
+        </select>
+        <select id="ano" aria-label="Ano" disabled>
+          <option value="">Escolha o modelo primeiro</option>
+        </select>
       </div>
-      <ul id="listaModelos" class="lista-modelos"></ul>
     </section>
 
     <!-- Indicador de processamento da requisição -->

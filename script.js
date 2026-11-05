@@ -7,7 +7,6 @@ const inputCodigo = document.getElementById('codigoFipe');
 const btnConsultar = document.getElementById('btnConsultar');
 const selectTipo = document.getElementById('tipoVeiculo');
 const selectMarca = document.getElementById('marca');
-const listaModelos = document.getElementById('listaModelos');
 const loading = document.getElementById('loading');
 const erro = document.getElementById('erro');
 const resultado = document.getElementById('resultado');
@@ -79,37 +78,80 @@ function mostrarPrecos(precos) {
   `).join('');
 }
 
-// ---------- 2) Marcas e modelos ----------
+// ---------- 2) Consulta guiada: Marca -> Modelo -> Ano -> Preço ----------
+const selectModelo = document.getElementById('modelo');
+const selectAno = document.getElementById('ano');
+
+// Preenche um <select> com a lista que veio da API
+function preencher(select, itens, textoInicial, campoTexto) {
+  select.innerHTML = `<option value="">${textoInicial}</option>` +
+    itens.map((i) => `<option value="${i.valor}">${i[campoTexto]}</option>`).join('');
+  select.disabled = false;
+}
+
+// Volta um <select> para o estado "aguardando o passo anterior"
+function resetar(select, texto) {
+  select.innerHTML = `<option value="">${texto}</option>`;
+  select.disabled = true;
+}
+
 async function carregarMarcas() {
-  selectMarca.disabled = true;
-  selectMarca.innerHTML = '<option value="">Carregando marcas...</option>';
-  listaModelos.innerHTML = '';
+  resetar(selectMarca, 'Carregando marcas...');
+  resetar(selectModelo, 'Escolha a marca primeiro');
+  resetar(selectAno, 'Escolha o modelo primeiro');
   try {
     const marcas = await buscar(`${API}/marcas/v1/${selectTipo.value}`);
-    selectMarca.innerHTML = '<option value="">Selecione a marca</option>' +
-      marcas.map((m) => `<option value="${m.valor}">${m.nome}</option>`).join('');
-    selectMarca.disabled = false;
+    preencher(selectMarca, marcas, 'Selecione a marca', 'nome');
   } catch (e) {
-    selectMarca.innerHTML = '<option value="">Erro ao carregar</option>';
+    resetar(selectMarca, 'Erro ao carregar');
     mostrarErro(`Não foi possível carregar as marcas: ${e.message}`);
   }
 }
 
 async function carregarModelos() {
-  listaModelos.innerHTML = '';
+  resetar(selectModelo, 'Escolha a marca primeiro');
+  resetar(selectAno, 'Escolha o modelo primeiro');
   if (!selectMarca.value) return;
   try {
     const modelos = await buscar(`${API}/veiculos/v1/${selectTipo.value}/${selectMarca.value}`);
-    listaModelos.innerHTML = modelos
-      .map((m) => `<li>${m.modelo ?? m.nome ?? m}</li>`)
-      .join('');
+    preencher(selectModelo, modelos, 'Selecione o modelo', 'modelo');
   } catch (e) {
     mostrarErro(`Não foi possível carregar os modelos: ${e.message}`);
   }
 }
 
+async function carregarAnos() {
+  resetar(selectAno, 'Escolha o modelo primeiro');
+  if (!selectModelo.value) return;
+  try {
+    const anos = await buscar(
+      `${API}/anos/v1/${selectTipo.value}/${selectMarca.value}/${selectModelo.value}`
+    );
+    preencher(selectAno, anos, 'Selecione o ano', 'nome');
+  } catch (e) {
+    mostrarErro(`Não foi possível carregar os anos: ${e.message}`);
+  }
+}
+
+// Último passo: com marca, modelo e ano, busca o preço
+async function consultarDetalhes() {
+  if (!selectAno.value) return;
+  resultado.innerHTML = '';
+  try {
+    const detalhe = await buscar(
+      `${API}/detalhes/v1/${selectTipo.value}/${selectMarca.value}/${selectModelo.value}/${selectAno.value}`
+    );
+    mostrarPrecos([detalhe]); // a rota devolve um único objeto
+    inputCodigo.value = detalhe.codigoFipe; // mostra o código FIPE descoberto
+  } catch (e) {
+    mostrarErro(`Não foi possível consultar o preço: ${e.message}`);
+  }
+}
+
 selectTipo.addEventListener('change', carregarMarcas);
 selectMarca.addEventListener('change', carregarModelos);
+selectModelo.addEventListener('change', carregarAnos);
+selectAno.addEventListener('change', consultarDetalhes);
 
 // Ao abrir a página, já carrega as marcas de carros
 carregarMarcas();
