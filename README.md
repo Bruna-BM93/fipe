@@ -36,4 +36,6 @@ O site funciona como um atendente: você escolhe o carro, ele avisa que está co
 ## Como executar
 Abra o `index.html` no navegador, ou use a extensão Live Server do VS Code. Não precisa instalar nada.
 
-Projeto de referência: [fabianooss/aula-javascript-request-api](https://github.com/fabianooss/aula-javascript-request-api)
+Projeto de referência: [fabianooss/aula-javascript-request-api](https://github.com/fabianooss/aula-javascript-request-api) 
+
+atualizado 
