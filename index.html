@@ -19,7 +19,7 @@
       <form id="formPreco">
         <label for="codigoFipe">Código FIPE</label>
         <div class="linha">
-          <input type="text" id="codigoFipe" placeholder="Ex.: 001004-9" required>
+          <input type="text" id="codigoFipe" placeholder="Ex.: 001004-9" pattern="\d{6}-\d" title="Formato 000000-0, ex.: 001004-9" required>
           <button type="submit" id="btnConsultar">Consultar</button>
         </div>
       </form>

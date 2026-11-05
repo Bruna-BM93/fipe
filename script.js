@@ -53,6 +53,16 @@ formPreco.addEventListener('submit', async (evento) => {
   const codigo = inputCodigo.value.trim();
   if (!codigo) return;
 
+  // O código FIPE tem sempre o formato 000000-0 (ex.: 001004-9)
+  if (!/^\d{6}-\d$/.test(codigo)) {
+    resultado.innerHTML = '';
+    mostrarErro(
+      `"${codigo}" não é um código FIPE. O código tem o formato 000000-0 (ex.: 001004-9). ` +
+      'Para buscar pelo nome do carro, use "Não sabe o código? Escolha o veículo" logo abaixo.'
+    );
+    return;
+  }
+
   resultado.innerHTML = '';
   try {
     const precos = await buscar(`${API}/preco/v1/${encodeURIComponent(codigo)}`);
